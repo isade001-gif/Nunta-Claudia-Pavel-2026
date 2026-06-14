@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Încarcă pozele de la nuntă</title>
+<meta name="theme-color" content="#8B4560">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --rose: #8B4560; --rose-mid: #B07090; --rose-light: #D4A8B8;
+    --rose-pale: #F5EBF0; --rose-bg: #FDF8FA;
+    --gold: #C9A96E; --gold-light: #E8D5B0;
+    --cream: #FEFCF8; --text: #3D2030; --text2: #8A6070; --white: #FFFFFF;
+  }
+  html, body { min-height: 100vh; background: var(--rose-bg); }
+  body { font-family: 'Lato', sans-serif; color: var(--text); overflow-x: hidden; }
+
+  .bg-decor { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .bg-circle { position: absolute; border-radius: 50%; opacity: .06; background: var(--rose); }
+  .bg-circle.c1 { width: 400px; height: 400px; top: -100px; right: -100px; }
+  .bg-circle.c2 { width: 300px; height: 300px; bottom: -80px; left: -80px; }
+  .bg-circle.c3 { width: 200px; height: 200px; top: 40%; left: -60px; opacity: .04; }
+
+  .page { display: none; position: relative; z-index: 1; }
+  .page.active { display: block; }
+
+  .wrap {
+    max-width: 480px; margin: 0 auto; padding: 2rem 1.25rem 4rem;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+
+  .ev-name {
+    font-family: 'Cormorant Garamond', serif; font-size: 3rem; font-weight: 400;
+    font-style: italic; color: var(--rose); text-align: center; line-height: 1.1; margin-bottom: .4rem;
+  }
+  .ampersand { color: var(--gold); }
+
+  .ev-date {
+    font-family: 'Lato', sans-serif; font-size: .75rem; font-weight: 300;
+    letter-spacing: 3px; text-transform: uppercase; color: var(--rose-mid); text-align: center; margin-bottom: 1.5rem;
+  }
+
+  .deco-line { display: flex; align-items: center; gap: .75rem; margin: 0 auto 1.5rem; width: 240px; }
+  .deco-line-bar { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--rose-light)); }
+  .deco-line-bar.right { background: linear-gradient(to left, transparent, var(--rose-light)); }
+  .deco-line-diamond { width: 8px; height: 8px; background: var(--gold); transform: rotate(45deg); flex-shrink: 0; }
+
+  .ev-message {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-style: italic;
+    color: var(--text2); text-align: center; line-height: 1.8; margin-bottom: 2rem; padding: 0 1rem;
+  }
+
+  .card {
+    background: var(--white); border-radius: 20px; padding: 1.75rem 1.5rem; width: 100%;
+    box-shadow: 0 2px 8px rgba(139,69,96,.06), 0 8px 32px rgba(139,69,96,.08);
+    margin-bottom: 1.25rem; border: 1px solid rgba(139,69,96,.08);
+  }
+  .card-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600;
+    color: var(--rose); margin-bottom: 1rem;
+  }
+
+  .steps { display: flex; flex-direction: column; gap: .6rem; }
+  .step {
+    display: flex; align-items: flex-start; gap: .85rem; padding: .75rem 1rem;
+    background: var(--rose-pale); border-radius: 12px; font-size: .88rem; color: var(--text2); line-height: 1.5;
+  }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--rose); color: white;
+    font-size: .72rem; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+
+  .btn-main {
+    display: flex; align-items: center; justify-content: center; gap: .6rem; width: 100%;
+    padding: 17px 24px; background: var(--rose); color: white; border: none; border-radius: 50px;
+    font-family: 'Lato', sans-serif; font-size: .95rem; font-weight: 400; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; text-decoration: none; transition: all .25s;
+    margin-top: 1.5rem; position: relative; overflow: hidden;
+  }
+  .btn-main:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139,69,96,.25); background: #7a3a50; }
+  .btn-main:active { transform: translateY(0); }
+
+  .redirect-info { text-align: center; font-size: .78rem; color: var(--rose-light); margin-top: .75rem; min-height: 1.2em; letter-spacing: .5px; }
+  .countdown { color: var(--rose-mid); font-weight: 700; }
+
+  .success-wrap { text-align: center; padding: 1rem 0; }
+  .success-icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; animation: pop .5s cubic-bezier(.36,1.56,.64,1); }
+  @keyframes pop { from { transform: scale(0) rotate(-10deg); } to { transform: scale(1) rotate(0deg); } }
+  .success-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-style: italic; color: var(--rose); margin-bottom: .5rem; }
+  .success-text { font-size: .9rem; color: var(--text2); line-height: 1.7; margin-bottom: 1.75rem; }
+
+  .btn-ghost {
+    display: flex; align-items: center; justify-content: center; gap: .4rem; background: none;
+    border: 1px solid var(--rose-light); border-radius: 50px; color: var(--rose-mid);
+    font-family: 'Lato', sans-serif; font-size: .82rem; letter-spacing: .8px; text-transform: uppercase;
+    padding: 10px 22px; cursor: pointer; margin-top: .75rem; transition: all .2s; width: 100%;
+  }
+  .btn-ghost:hover { background: var(--rose-pale); border-color: var(--rose-mid); color: var(--rose); }
+
+  .event-card {
+    display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.25rem;
+    background: white; border: 1px solid rgba(139,69,96,.1); border-radius: 16px; cursor: pointer;
+    margin-bottom: .75rem; transition: all .2s; box-shadow: 0 2px 8px rgba(139,69,96,.04); width: 100%;
+  }
+  .event-card:hover { border-color: var(--rose-mid); background: var(--rose-pale); transform: translateX(4px); }
+  .event-card-name { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-style: italic; color: var(--rose); margin-bottom: 2px; }
+  .event-card-date { font-size: .75rem; color: var(--rose-light); letter-spacing: 1px; text-transform: uppercase; }
+  .event-card-arrow { color: var(--gold); font-size: 1.2rem; transition: transform .2s; }
+  .event-card:hover .event-card-arrow { transform: translateX(4px); }
+
+  .floral-top { width: 100%; max-width: 340px; margin: 0 auto 1rem; display: block; }
+  .floral-bot { width: 100%; max-width: 280px; margin: 1rem auto 0; display: block; }
+
+  .footer { text-align: center; font-size: .72rem; color: var(--rose-light); letter-spacing: 1.5px; text-transform: uppercase; margin-top: .5rem; }
+  .footer-heart { color: var(--gold); }
+
+  .back-btn {
+    background: none; border: none; color: var(--rose-light); font-size: .8rem; cursor: pointer;
+    font-family: 'Lato', sans-serif; letter-spacing: 1px; text-transform: uppercase;
+    display: flex; align-items: center; gap: .3rem; padding: 0; margin-bottom: 1.5rem; transition: color .15s;
+  }
+  .back-btn:hover { color: var(--rose); }
+
+  .page.active .card, .page.active .btn-main, .page.active .ev-name { animation: fadeUp .4s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="bg-decor">
+  <div class="bg-circle c1"></div>
+  <div class="bg-circle c2"></div>
+  <div class="bg-circle c3"></div>
+</div>
+
+<!-- PAGINA SELECTIE -->
+<div class="page active" id="page-select">
+  <div class="wrap">
+    <svg class="floral-top" viewBox="0 0 340 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M170 95 Q130 70 100 50 Q80 38 60 42" stroke="#C9A96E" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M130 65 Q115 48 108 30" stroke="#D4A8B8" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <path d="M110 52 Q95 38 88 20" stroke="#D4A8B8" stroke-width=".8" fill="none" stroke-linecap="round"/>
+      <path d="M100 50 Q82 55 68 65" stroke="#C9A96E" stroke-width=".8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="108" cy="28" rx="7" ry="4" fill="#D4A8B8" opacity=".7" transform="rotate(-30 108 28)"/>
+      <ellipse cx="88" cy="18" rx="6" ry="3.5" fill="#B07090" opacity=".5" transform="rotate(-50 88 18)"/>
+      <ellipse cx="68" cy="64" rx="5" ry="3" fill="#D4A8B8" opacity=".6" transform="rotate(20 68 64)"/>
+      <ellipse cx="60" cy="40" rx="7" ry="4" fill="#C9A96E" opacity=".4" transform="rotate(-10 60 40)"/>
+      <circle cx="105" cy="48" r="5" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".8"/>
+      <circle cx="105" cy="48" r="2" fill="#B07090"/>
+      <circle cx="85" cy="32" r="4" fill="#F5EBF0" stroke="#C9A96E" stroke-width=".8"/>
+      <circle cx="85" cy="32" r="1.5" fill="#C9A96E"/>
+      <path d="M170 95 Q210 70 240 50 Q260 38 280 42" stroke="#C9A96E" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M210 65 Q225 48 232 30" stroke="#D4A8B8" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <path d="M230 52 Q245 38 252 20" stroke="#D4A8B8" stroke-width=".8" fill="none" stroke-linecap="round"/>
+      <path d="M240 50 Q258 55 272 65" stroke="#C9A96E" stroke-width=".8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="232" cy="28" rx="7" ry="4" fill="#D4A8B8" opacity=".7" transform="rotate(30 232 28)"/>
+      <ellipse cx="252" cy="18" rx="6" ry="3.5" fill="#B07090" opacity=".5" transform="rotate(50 252 18)"/>
+      <ellipse cx="272" cy="64" rx="5" ry="3" fill="#D4A8B8" opacity=".6" transform="rotate(-20 272 64)"/>
+      <ellipse cx="280" cy="40" rx="7" ry="4" fill="#C9A96E" opacity=".4" transform="rotate(10 280 40)"/>
+      <circle cx="235" cy="48" r="5" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".8"/>
+      <circle cx="235" cy="48" r="2" fill="#B07090"/>
+      <circle cx="255" cy="32" r="4" fill="#F5EBF0" stroke="#C9A96E" stroke-width=".8"/>
+      <circle cx="255" cy="32" r="1.5" fill="#C9A96E"/>
+      <circle cx="170" cy="58" r="18" fill="#F5EBF0" stroke="#D4A8B8" stroke-width="1"/>
+      <circle cx="170" cy="58" r="10" fill="#E8D5E8" stroke="#B07090" stroke-width=".8"/>
+      <circle cx="170" cy="58" r="5" fill="#8B4560"/>
+      <ellipse cx="170" cy="41" rx="5" ry="8" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".6" opacity=".9"/>
+      <ellipse cx="170" cy="75" rx="5" ry="8" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".6" opacity=".9"/>
+      <ellipse cx="153" cy="58" rx="8" ry="5" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".6" opacity=".9"/>
+      <ellipse cx="187" cy="58" rx="8" ry="5" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".6" opacity=".9"/>
+      <ellipse cx="158" cy="45" rx="5" ry="8" fill="#FDF8FA" stroke="#C9A96E" stroke-width=".5" opacity=".7" transform="rotate(-45 158 45)"/>
+      <ellipse cx="182" cy="45" rx="5" ry="8" fill="#FDF8FA" stroke="#C9A96E" stroke-width=".5" opacity=".7" transform="rotate(45 182 45)"/>
+      <ellipse cx="158" cy="71" rx="5" ry="8" fill="#FDF8FA" stroke="#C9A96E" stroke-width=".5" opacity=".7" transform="rotate(45 158 71)"/>
+      <ellipse cx="182" cy="71" rx="5" ry="8" fill="#FDF8FA" stroke="#C9A96E" stroke-width=".5" opacity=".7" transform="rotate(-45 182 71)"/>
+      <line x1="60" y1="105" x2="145" y2="105" stroke="#D4A8B8" stroke-width=".6"/>
+      <rect x="167" y="102" width="6" height="6" fill="#C9A96E" transform="rotate(45 170 105)"/>
+      <line x1="195" y1="105" x2="280" y2="105" stroke="#D4A8B8" stroke-width=".6"/>
+    </svg>
+
+    <h1 class="ev-name" style="font-size:2rem; margin-bottom:.3rem;">Poze de nuntă</h1>
+    <p class="ev-date">Selectează evenimentul tău</p>
+    <div class="deco-line">
+      <div class="deco-line-bar"></div>
+      <div class="deco-line-diamond"></div>
+      <div class="deco-line-bar right"></div>
+    </div>
+    <div style="width:100%;" id="eventList"></div>
+    <div class="footer"><span class="footer-heart">♥</span> motionWedding</div>
+  </div>
+</div>
+
+<!-- PAGINA EVENIMENT -->
+<div class="page" id="page-event">
+  <div class="wrap">
+    <button class="back-btn" onclick="goBack()">← Înapoi</button>
+    <svg class="floral-top" style="max-width:280px; margin-bottom:.75rem;" viewBox="0 0 280 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M140 78 Q110 58 85 42 Q68 32 50 36" stroke="#C9A96E" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <path d="M140 78 Q170 58 195 42 Q212 32 230 36" stroke="#C9A96E" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="88" cy="22" rx="6" ry="3.5" fill="#D4A8B8" opacity=".7" transform="rotate(-40 88 22)"/>
+      <ellipse cx="192" cy="22" rx="6" ry="3.5" fill="#D4A8B8" opacity=".7" transform="rotate(40 192 22)"/>
+      <circle cx="85" cy="40" r="4.5" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".8"/>
+      <circle cx="85" cy="40" r="1.8" fill="#B07090"/>
+      <circle cx="195" cy="40" r="4.5" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".8"/>
+      <circle cx="195" cy="40" r="1.8" fill="#B07090"/>
+      <circle cx="140" cy="48" r="14" fill="#F5EBF0" stroke="#D4A8B8" stroke-width=".8"/>
+      <circle cx="140" cy="48" r="7" fill="#E8D5E8" stroke="#B07090" stroke-width=".6"/>
+      <circle cx="140" cy="48" r="3.5" fill="#8B4560"/>
+      <ellipse cx="140" cy="35" rx="3.5" ry="6" fill="#FDF8FA" stroke="#D4A8B8" stroke-width=".5" opacity=".9"/>
+      <ellipse cx="140" cy="61" rx="3.5" ry="6" fill="#FDF8FA" stroke="#D4A8B8" stroke-width=".5" opacity=".9"/>
+      <ellipse cx="127" cy="48" rx="6" ry="3.5" fill="#FDF8FA" stroke="#D4A8B8" stroke-width=".5" opacity=".9"/>
+      <ellipse cx="153" cy="48" rx="6" ry="3.5" fill="#FDF8FA" stroke="#D4A8B8" stroke-width=".5" opacity=".9"/>
+      <line x1="50" y1="82" x2="122" y2="82" stroke="#D4A8B8" stroke-width=".5"/>
+      <rect x="137" y="79" width="6" height="6" fill="#C9A96E" transform="rotate(45 140 82)"/>
+      <line x1="158" y1="82" x2="230" y2="82" stroke="#D4A8B8" stroke-width=".5"/>
+    </svg>
+    <h1 class="ev-name" id="ev-name">Claudia <span class="ampersand">&</span> Pavel</h1>
+    <p class="ev-date" id="ev-date">20 August 2026</p>
+    <div class="deco-line">
+      <div class="deco-line-bar"></div>
+      <div class="deco-line-diamond"></div>
+      <div class="deco-line-bar right"></div>
+    </div>
+    <p class="ev-message" id="ev-message">Suntem bucuroși că ați fost alături de noi în cea mai frumoasă zi!</p>
+    <div class="card">
+      <div class="card-title">Cum încarci pozele tale</div>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div>Apasă butonul <strong style="color:var(--rose)">„Deschide albumul"</strong> de mai jos</div></div>
+        <div class="step"><div class="step-num">2</div><div>În Google Drive apasă <strong style="color:var(--rose)">„+ Nou"</strong> apoi <strong style="color:var(--rose)">„Încărcare fișiere"</strong></div></div>
+        <div class="step"><div class="step-num">3</div><div>Selectează pozele din galeria telefonului și gata! 🎉</div></div>
+      </div>
+    </div>
+    <a id="driveBtn" href="#" class="btn-main" onclick="openDrive(event)">
+      <span>📁 Deschide albumul</span>
+    </a>
+    <div class="redirect-info" id="redirectInfo"></div>
+    <svg class="floral-bot" viewBox="0 0 280 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="10" x2="120" y2="10" stroke="#D4A8B8" stroke-width=".5"/>
+      <rect x="137" y="7" width="6" height="6" fill="#C9A96E" transform="rotate(45 140 10)"/>
+      <line x1="160" y1="10" x2="250" y2="10" stroke="#D4A8B8" stroke-width=".5"/>
+      <path d="M140 10 Q115 28 90 40 Q70 48 50 45" stroke="#C9A96E" stroke-width="1" fill="none" stroke-linecap="round" opacity=".7"/>
+      <path d="M140 10 Q165 28 190 40 Q210 48 230 45" stroke="#C9A96E" stroke-width="1" fill="none" stroke-linecap="round" opacity=".7"/>
+      <ellipse cx="88" cy="52" rx="5" ry="3" fill="#D4A8B8" opacity=".5" transform="rotate(20 88 52)"/>
+      <ellipse cx="192" cy="52" rx="5" ry="3" fill="#D4A8B8" opacity=".5" transform="rotate(-20 192 52)"/>
+    </svg>
+    <div class="footer"><span class="footer-heart">♥</span> motionWedding</div>
+  </div>
+</div>
+
+<!-- PAGINA SUCCES -->
+<div class="page" id="page-success">
+  <div class="wrap">
+    <div class="success-wrap">
+      <span class="success-icon">💐</span>
+      <h2 class="success-title">Mulțumim din suflet!</h2>
+      <p class="success-text">Albumul s-a deschis într-un tab nou.<br>Pozele tale vor rămâne amintiri prețioase pentru noi!</p>
+      <a id="successBtn" href="#" class="btn-main" target="_blank"><span>📁 Deschide albumul din nou</span></a>
+      <button class="btn-ghost" onclick="goBack()">← Alege alt eveniment</button>
+    </div>
+    <div class="footer" style="margin-top:2rem;"><span class="footer-heart">♥</span> motionWedding</div>
+  </div>
+</div>
+
+<script>
+const EVENTS = [
+  {
+    slug: 'claudia-pavel', name: 'Claudia & Pavel', date: '15 August 2025',
+    driveUrl: 'https://photos.app.goo.gl/tsZD6a1RNXCQ2z28A',
+    message: 'Suntem bucuroși că ați fost alături de noi în cea mai frumoasă zi!',
+  },
+];
+
+let currentEvent = null, countdownTimer = null;
+
+function init() {
+  const slug = new URLSearchParams(window.location.search).get('e');
+  const found = EVENTS.find(e => e.slug === slug);
+  if (found) { showEvent(found); }
+  else if (EVENTS.length === 1) { showEvent(EVENTS[0]); }
+  else { buildList(); showPage('select'); }
+}
+
+function buildList() {
+  document.getElementById('eventList').innerHTML = EVENTS.map(e => `
+    <div class="event-card" onclick='showEvent(${JSON.stringify(e)})'>
+      <div>
+        <div class="event-card-name">${e.name}</div>
+        <div class="event-card-date">${e.date}</div>
+      </div>
+      <span class="event-card-arrow">→</span>
+    </div>`).join('');
+}
+
+function showEvent(ev) {
+  currentEvent = ev;
+  document.getElementById('ev-name').innerHTML = ev.name.replace('&', '<span class="ampersand">&amp;</span>');
+  document.getElementById('ev-date').textContent = ev.date;
+  document.getElementById('ev-message').textContent = ev.message;
+  document.getElementById('driveBtn').href = ev.driveUrl;
+  document.getElementById('successBtn').href = ev.driveUrl;
+  showPage('event');
+  startCountdown();
+}
+
+function startCountdown() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  let sec = 12;
+  const info = document.getElementById('redirectInfo');
+  info.innerHTML = `Se deschide automat în <span class="countdown">${sec}</span> secunde...`;
+  countdownTimer = setInterval(() => {
+    sec--;
+    const el = document.querySelector('.countdown');
+    if (el) el.textContent = sec;
+    if (sec <= 0) { clearInterval(countdownTimer); window.open(currentEvent.driveUrl, '_blank'); showPage('success'); }
+  }, 1000);
+}
+
+function openDrive(e) {
+  e.preventDefault();
+  if (countdownTimer) clearInterval(countdownTimer);
+  window.open(currentEvent.driveUrl, '_blank');
+  showPage('success');
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+}
+
+function goBack() {
+  if (countdownTimer) clearInterval(countdownTimer);
+  document.getElementById('redirectInfo').innerHTML = '';
+  EVENTS.length === 1 ? showEvent(EVENTS[0]) : showPage('select');
+}
+
+init();
+</script>
+</body>
+</html>
